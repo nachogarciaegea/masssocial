@@ -3,6 +3,7 @@
 # Requisitos: railway CLI autenticada (railway login) y openssl.
 # Crea: proyecto masssocial, Postgres, Redis, Temporal (auto-setup) y la app.
 set -euo pipefail
+export MSYS_NO_PATHCONV=1  # Git Bash en Windows: no convertir /uploads en ruta de Windows
 
 PROJECT="${PROJECT:-masssocial}"
 APP_IMAGE="${APP_IMAGE:-ghcr.io/gitroomhq/postiz-app:latest}"
