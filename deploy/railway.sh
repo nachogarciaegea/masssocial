@@ -40,6 +40,7 @@ railway add --service masssocial --image "$APP_IMAGE" \
   --variables 'MAIN_URL=https://${{RAILWAY_PUBLIC_DOMAIN}}' \
   --variables 'FRONTEND_URL=https://${{RAILWAY_PUBLIC_DOMAIN}}' \
   --variables 'NEXT_PUBLIC_BACKEND_URL=https://${{RAILWAY_PUBLIC_DOMAIN}}/api' \
+  --variables "PORT=3000" \
   --variables "BACKEND_INTERNAL_URL=http://localhost:3000" \
   --variables "JWT_SECRET=$JWT_SECRET" \
   --variables 'DATABASE_URL=${{Postgres.DATABASE_URL}}' \
