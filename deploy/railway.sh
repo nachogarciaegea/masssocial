@@ -32,7 +32,7 @@ railway add --service temporal --image "$TEMPORAL_IMAGE" \
   --variables "TEMPORAL_ADDRESS=127.0.0.1:7233" \
   --variables "DEFAULT_NAMESPACE=default" \
   --variables "TEMPORAL_NAMESPACE=default" \
-  --variables "SKIP_DEFAULT_NAMESPACE_CREATION=false"
+  --variables "SKIP_DEFAULT_NAMESPACE_CREATION=false" \n  --variables "SKIP_ADD_CUSTOM_SEARCH_ATTRIBUTES=true"
 
 echo ">> App"
 railway add --service masssocial --image "$APP_IMAGE" \
