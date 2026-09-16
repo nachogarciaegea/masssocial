@@ -47,6 +47,7 @@ railway add --service masssocial --image "$APP_IMAGE" \
   --variables 'REDIS_URL=${{Redis.REDIS_URL}}' \
   --variables 'TEMPORAL_ADDRESS=${{temporal.RAILWAY_PRIVATE_DOMAIN}}:7233' \
   --variables "TEMPORAL_NAMESPACE=default" \
+  --variables "NOT_SECURED=true" \
   --variables "IS_GENERAL=true" \
   --variables "DISABLE_REGISTRATION=false" \
   --variables "STORAGE_PROVIDER=local" \

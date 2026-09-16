@@ -20,6 +20,12 @@ URL de producción: https://masssocial-production.up.railway.app
 - **Puertos**: nginx escucha en 5000 dentro del contenedor y el dominio se crea con `--port 5000`.
   Railway inyecta `PORT=8080` en tiempo de ejecución y el backend lo obedece, así que nginx no lo
   encuentra en 3000 y devuelve 502. Por eso la app lleva `PORT=3000` fijado.
+- **Cookie de sesión en `*.up.railway.app`**: Postiz deriva el dominio de la cookie de `FRONTEND_URL`
+  con tldts y obtiene `.railway.app`, que el navegador rechaza por ser sufijo público. Registro y
+  login devuelven 200 pero se vuelve a `/auth/login`. Con `NOT_SECURED=true` (lo que hace la plantilla
+  oficial) el backend devuelve el token en la cabecera `auth` y el frontend lo guarda como cookie sin
+  dominio. Coste: la cookie deja de ser `httpOnly`/`Secure`. Solución definitiva en fase 2: dominio
+  propio (por ejemplo `social.nachogarciaegea.com`) y quitar `NOT_SECURED`.
 - **SSH a los contenedores**: hay una clave `railway-masssocial` registrada en la cuenta
   (`~/.ssh/id_ed25519_railway`). `railway ssh --service <servicio>` o un bloque generado con
   `railway ssh config --service <servicio> --alias <alias> --dry-run`.
