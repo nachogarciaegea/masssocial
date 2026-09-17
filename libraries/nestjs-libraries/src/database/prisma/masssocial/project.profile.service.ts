@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ProjectProfile } from '@prisma/client';
 import { ProjectProfileRepository } from '@gitroom/nestjs-libraries/database/prisma/masssocial/project.profile.repository';
 import { ProjectProfileDto } from '@gitroom/nestjs-libraries/dtos/masssocial/project.dto';
@@ -63,8 +67,19 @@ export class ProjectProfileService {
     return { projects, unassigned };
   }
 
-  createProject(orgId: string, name: string) {
-    return this._projectProfileRepository.createCustomer(orgId, name.trim());
+  async createProject(orgId: string, name: string) {
+    const trimmed = name.trim();
+    if (!trimmed) {
+      throw new BadRequestException('El proyecto necesita un nombre');
+    }
+    const existing = await this._projectProfileRepository.getCustomerByName(
+      orgId,
+      trimmed
+    );
+    if (existing) {
+      throw new BadRequestException(`Ya existe un proyecto llamado «${trimmed}»`);
+    }
+    return this._projectProfileRepository.createCustomer(orgId, trimmed);
   }
 
   async updateProfile(

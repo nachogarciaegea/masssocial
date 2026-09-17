@@ -183,7 +183,7 @@ const PreviewRow: FC<{
       <div className="flex flex-wrap gap-[4px]">
         {row.media.map((media) => (
           <img
-            key={media.id}
+            key={media.id || media.path}
             src={media.thumbnail || media.path}
             alt={media.name}
             title={media.name}

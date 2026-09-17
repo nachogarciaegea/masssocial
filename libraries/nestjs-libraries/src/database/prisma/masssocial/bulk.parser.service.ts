@@ -253,8 +253,13 @@ export class BulkParserService {
     if (value instanceof Date) {
       // exceljs devuelve fechas en UTC; se conserva la parte de fecha/hora tal cual
       const iso = value.toISOString();
+      const date = iso.slice(0, 10);
       const time = iso.slice(11, 16);
-      return time === '00:00' ? iso.slice(0, 10) : `${iso.slice(0, 10)} ${time}`;
+      // Celdas "solo hora" de Excel: exceljs las sitúa en la época 1899-12-30 (o 1904-01-01)
+      if (date === '1899-12-30' || date === '1904-01-01') {
+        return time;
+      }
+      return time === '00:00' ? date : `${date} ${time}`;
     }
     if (typeof value === 'object') {
       if (Array.isArray(value.richText)) {

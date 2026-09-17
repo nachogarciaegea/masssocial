@@ -627,12 +627,18 @@ export class BulkService {
       } catch (err: any) {
         failed.push({
           index: row.index,
-          error: err?.response?.message || err?.message || 'Error desconocido',
+          error: this.errorToString(err),
         });
       }
     }
 
     return { created, failed };
+  }
+
+  // Los errores del ValidationPipe de Nest traen message como string[]
+  private errorToString(err: any): string {
+    const message = err?.response?.message || err?.message || 'Error desconocido';
+    return Array.isArray(message) ? message.join('; ') : String(message);
   }
 
   async plan(orgId: string, body: BulkPlanDto) {
