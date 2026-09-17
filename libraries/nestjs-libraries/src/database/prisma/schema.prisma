@@ -44,6 +44,7 @@ model Organization {
   webhooks            Webhooks[]
   oauthApp            OAuthApp[]
   oauthAuthorizations OAuthAuthorization[]
+  projectProfiles     ProjectProfile[]
 
   @@index([apiKey])
   @@index([streakSince])
@@ -314,8 +315,29 @@ model Customer {
   deletedAt    DateTime?
   organization Organization  @relation(fields: [orgId], references: [id])
   integrations Integration[]
+  profile      ProjectProfile?
 
   @@unique([orgId, name, deletedAt])
+}
+
+model ProjectProfile {
+  id             String       @id @default(uuid())
+  organizationId String
+  customerId     String       @unique
+  tone           String?
+  language       String?
+  hashtags       String?
+  timezone       String?
+  defaultTimes   String?
+  color          String?
+  notes          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  customer       Customer     @relation(fields: [customerId], references: [id])
+
+  @@index([organizationId])
 }
 
 model Integration {

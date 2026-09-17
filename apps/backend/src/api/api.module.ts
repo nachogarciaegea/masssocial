@@ -51,6 +51,10 @@ import { FarcasterProvider } from '@gitroom/backend/services/auth/providers/farc
 import { WalletProvider } from '@gitroom/backend/services/auth/providers/wallet.provider';
 import { OauthProvider } from '@gitroom/backend/services/auth/providers/oauth.provider';
 import { StripeController } from '@gitroom/backend/api/routes/stripe.controller';
+import { MasssocialProjectsController } from '@gitroom/backend/api/routes/masssocial.projects.controller';
+import { MasssocialBulkController } from '@gitroom/backend/api/routes/masssocial.bulk.controller';
+import { MasssocialAdaptController } from '@gitroom/backend/api/routes/masssocial.adapt.controller';
+import { MasssocialEvergreenController } from '@gitroom/backend/api/routes/masssocial.evergreen.controller';
 
 const authenticatedController = [
   UsersController,
@@ -72,6 +76,10 @@ const authenticatedController = [
   OAuthAuthorizedController,
   AnnouncementsController,
   AdminController,
+  MasssocialProjectsController,
+  MasssocialBulkController,
+  MasssocialAdaptController,
+  MasssocialEvergreenController,
 ];
 @Module({
   imports: [UploadModule],

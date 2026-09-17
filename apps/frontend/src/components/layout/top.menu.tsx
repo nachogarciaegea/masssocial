@@ -55,6 +55,48 @@ export const useMenuItem = () => {
       path: '/launches',
     },
     {
+      name: t('masssocial_bulk', 'Masivo'),
+      icon: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+        >
+          <path
+            d="M4 6.5C4 5.67157 4.67157 5 5.5 5H18.5C19.3284 5 20 5.67157 20 6.5V8.5C20 9.32843 19.3284 10 18.5 10H5.5C4.67157 10 4 9.32843 4 8.5V6.5ZM4 15.5C4 14.6716 4.67157 14 5.5 14H18.5C19.3284 14 20 14.6716 20 15.5V17.5C20 18.3284 19.3284 19 18.5 19H5.5C4.67157 19 4 18.3284 4 17.5V15.5ZM7 7.5H12M7 16.5H12"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+      path: '/masssocial/bulk',
+    },
+    {
+      name: t('masssocial_projects', 'Proyectos'),
+      icon: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+        >
+          <path
+            d="M3 7.5C3 6.11929 4.11929 5 5.5 5H9.17157C9.70201 5 10.2107 5.21071 10.5858 5.58579L11.4142 6.41421C11.7893 6.78929 12.298 7 12.8284 7H18.5C19.8807 7 21 8.11929 21 9.5V16.5C21 17.8807 19.8807 19 18.5 19H5.5C4.11929 19 3 17.8807 3 16.5V7.5ZM3 11H21"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      ),
+      path: '/masssocial/projects',
+    },
+    {
       name: 'Agent',
       icon: (
         <svg

@@ -47,6 +47,14 @@ import { ErrorsRepository } from '@gitroom/nestjs-libraries/database/prisma/erro
 import { ErrorsService } from '@gitroom/nestjs-libraries/database/prisma/errors/errors.service';
 import { AdminStatsRepository } from '@gitroom/nestjs-libraries/database/prisma/admin-stats/admin-stats.repository';
 import { AdminStatsService } from '@gitroom/nestjs-libraries/database/prisma/admin-stats/admin-stats.service';
+import { ProjectProfileRepository } from '@gitroom/nestjs-libraries/database/prisma/masssocial/project.profile.repository';
+import { ProjectProfileService } from '@gitroom/nestjs-libraries/database/prisma/masssocial/project.profile.service';
+import { BulkRepository } from '@gitroom/nestjs-libraries/database/prisma/masssocial/bulk.repository';
+import { BulkParserService } from '@gitroom/nestjs-libraries/database/prisma/masssocial/bulk.parser.service';
+import { AdaptService } from '@gitroom/nestjs-libraries/database/prisma/masssocial/adapt.service';
+import { BulkService } from '@gitroom/nestjs-libraries/database/prisma/masssocial/bulk.service';
+import { EvergreenRepository } from '@gitroom/nestjs-libraries/database/prisma/masssocial/evergreen.repository';
+import { EvergreenService } from '@gitroom/nestjs-libraries/database/prisma/masssocial/evergreen.service';
 
 @Global()
 @Module({
@@ -103,6 +111,14 @@ import { AdminStatsService } from '@gitroom/nestjs-libraries/database/prisma/adm
     ErrorsService,
     AdminStatsRepository,
     AdminStatsService,
+    ProjectProfileRepository,
+    ProjectProfileService,
+    BulkRepository,
+    BulkParserService,
+    AdaptService,
+    BulkService,
+    EvergreenRepository,
+    EvergreenService,
   ],
   get exports() {
     return this.providers;

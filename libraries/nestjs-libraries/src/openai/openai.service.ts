@@ -269,4 +269,48 @@ export class OpenaiService {
 
     return [];
   }
+
+  // MASSSOCIAL: rewrites a post for one provider keeping the meaning; returns
+  // plain text (paragraphs separated by blank lines), never HTML
+  async adaptPostForProvider(
+    content: string,
+    options: {
+      identifier: string;
+      maxLength: number;
+      tone?: string;
+      language?: string;
+      hashtags?: string[];
+    }
+  ): Promise<string> {
+    const AdaptedPost = z.object({
+      content: z.string(),
+    });
+
+    const instructions = [
+      `You adapt social media posts for the "${options.identifier}" network.`,
+      `Keep the original meaning and facts, do not invent information.`,
+      `Return plain text only: paragraphs separated by a blank line, no markdown, no HTML.`,
+      `The final text must be at most ${options.maxLength} characters including hashtags.`,
+      options.tone ? `Use this tone: ${options.tone}.` : '',
+      options.language
+        ? `Write in this language: ${options.language}.`
+        : 'Keep the language of the original text.',
+      options.hashtags?.length
+        ? `If they fit, end with these hashtags on their own line: ${options.hashtags.join(' ')}.`
+        : '',
+    ]
+      .filter((f) => !!f)
+      .join('\n');
+
+    const adapted = await openai.chat.completions.parse({
+      model: 'gpt-4.1',
+      messages: [
+        { role: 'system', content: instructions },
+        { role: 'user', content },
+      ],
+      response_format: zodResponseFormat(AdaptedPost, 'adapted'),
+    });
+
+    return adapted.choices[0].message.parsed?.content || content;
+  }
 }
