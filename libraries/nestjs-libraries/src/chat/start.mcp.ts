@@ -83,6 +83,12 @@ export const startMcp = async (app: INestApplication) => {
 
   const backendUrl = process.env.NEXT_PUBLIC_OVERRIDE_BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL;
 
+  // MASSSOCIAL: public URLs must keep the path prefix of NEXT_PUBLIC_BACKEND_URL
+  // (single-domain deployments serve the backend under /api). new URL('/x', base)
+  // drops that prefix, which broke OAuth discovery for MCP clients.
+  const publicBackendBase = (process.env.NEXT_PUBLIC_BACKEND_URL || '').replace(/\/+$/, '');
+  const publicBackendUrl = (path: string) => new URL(publicBackendBase + path).toString();
+
   // Two RFC 8414 path-based issuers backed by the same endpoints and code.
   // /mcp-oauth-chatgpt is what the ChatGPT app submission points at: it does
   // not advertise a registration_endpoint, so the OpenAI builder defaults to
@@ -92,11 +98,11 @@ export const startMcp = async (app: INestApplication) => {
   // self-registering client
   const authorizationServers: Record<string, { issuer: string; registration: boolean }> = {
     '/mcp-oauth-chatgpt': {
-      issuer: new URL('/mcp-oauth-chatgpt', process.env.NEXT_PUBLIC_BACKEND_URL!).toString(),
+      issuer: publicBackendUrl('/mcp-oauth-chatgpt'),
       registration: false,
     },
     '/mcp-oauth-dynamic': {
-      issuer: new URL('/mcp-oauth-dynamic', process.env.NEXT_PUBLIC_BACKEND_URL!).toString(),
+      issuer: publicBackendUrl('/mcp-oauth-dynamic'),
       registration: true,
     },
   };
@@ -126,7 +132,7 @@ export const startMcp = async (app: INestApplication) => {
   const createResourceMiddleware = (mcpPath: string, authorizationServer: string) =>
     createOAuthMiddleware({
       oauth: {
-        resource: new URL(mcpPath, process.env.NEXT_PUBLIC_BACKEND_URL!).toString(),
+        resource: publicBackendUrl(mcpPath),
         authorizationServers: [authorizationServers[authorizationServer].issuer],
         scopesSupported: oauthScopes,
         validateToken: async (token: string) => {
