@@ -58,6 +58,17 @@ export class InstagramProvider
     if (firstPost.length > 10) {
       return 'Instagram carousel only supports up to 10 media attachments';
     }
+    if (settings?.post_type === 'reel') {
+      if ((firstPost?.length ?? 0) > 1) {
+        return 'A Reel can only have one video';
+      }
+      const hasVideo = firstPost?.some(
+        (f) => (f?.path?.indexOf?.('mp4') ?? -1) > -1
+      );
+      if (!hasVideo) {
+        return 'A Reel must be a video';
+      }
+    }
     if (this.assetBoolean(settings?.is_trial_reel)) {
       if ((firstPost?.length ?? 0) > 1) {
         return 'Trial Reels can only have one video';
@@ -670,6 +681,13 @@ export class InstagramProvider
     const [accessToken] = token.split('___');
     const [firstPost] = postDetails;
     const isStory = firstPost.settings.post_type === 'story';
+    // 'reel' explicito, o el comportamiento heredado: un unico video dentro de un 'post'.
+    // El fallback mantiene validos los posts ya programados antes de existir el tipo 'reel'.
+    const isReel =
+      firstPost.settings.post_type === 'reel' ||
+      (firstPost.settings.post_type === 'post' &&
+        firstPost?.media?.length === 1 &&
+        hasExtension(firstPost?.media?.[0]?.path || '', 'mp4'));
     const collaborators =
       firstPost?.settings?.collaborators?.length && !isStory
         ? `&collaborators=${encodeURIComponent(
@@ -680,7 +698,7 @@ export class InstagramProvider
             )
           )}`
         : ``;
-    const isTrialReel = this.assetBoolean(firstPost.settings.is_trial_reel);
+    const isTrialReel = isReel && this.assetBoolean(firstPost.settings.is_trial_reel);
     const medias = await Promise.all(
       firstPost?.media?.map(async (m) => {
         const caption =
@@ -692,14 +710,12 @@ export class InstagramProvider
             ? `&is_carousel_item=true`
             : ``;
         const mediaType = hasExtension(m.path, 'mp4')
-          ? firstPost?.media?.length === 1
-            ? isStory
-              ? `video_url=${m.path}&media_type=STORIES`
-              : `video_url=${m.path}&media_type=REELS&thumb_offset=${
-                  m?.thumbnailTimestamp || 0
-                }`
-            : isStory
+          ? isStory
             ? `video_url=${m.path}&media_type=STORIES`
+            : isReel
+            ? `video_url=${m.path}&media_type=REELS&thumb_offset=${
+                m?.thumbnailTimestamp || 0
+              }`
             : `video_url=${m.path}&media_type=VIDEO&thumb_offset=${
                 m?.thumbnailTimestamp || 0
               }`

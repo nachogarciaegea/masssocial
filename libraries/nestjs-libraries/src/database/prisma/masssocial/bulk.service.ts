@@ -163,8 +163,12 @@ export class BulkService {
       case 'instagram':
       case 'instagram-standalone':
         settings = {
-          post_type:
-            (row.tipo || '').trim().toLowerCase() === 'story' ? 'story' : 'post',
+          post_type: ((): 'post' | 'reel' | 'story' => {
+            const tipo = (row.tipo || '').trim().toLowerCase();
+            if (tipo === 'story') return 'story';
+            if (tipo === 'reel') return 'reel';
+            return 'post';
+          })(),
         };
         break;
       case 'tiktok':
