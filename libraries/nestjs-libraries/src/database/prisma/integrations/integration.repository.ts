@@ -585,12 +585,16 @@ export class IntegrationRepository {
   }
 
   getPostsForChannel(org: string, id: string) {
+    // Only QUEUE/DRAFT/ERROR posts are returned here: disconnecting a channel
+    // cancels what hasn't gone out yet, but must never erase the historical
+    // record of posts that already published successfully.
     return this._posts.model.post.groupBy({
       by: ['group'],
       where: {
         organizationId: org,
         integrationId: id,
         deletedAt: null,
+        state: { not: 'PUBLISHED' },
       },
     });
   }
