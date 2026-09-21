@@ -416,14 +416,14 @@ export const EditorWrapper: FC<{
           <div className="absolute w-full h-full left-0 top-0 bg-newBackdrop opacity-60 z-[100] rounded-[12px]" />
         </>
       )}
-      {!!selectedIntegration?.length && (
-        <div className="flex justify-end">
-          <AiDraftButton
-            integrationIds={selectedIntegration.map((p) => p.integration.id)}
-            onInsert={changeValue(0)}
-          />
-        </div>
-      )}
+      <div className="flex justify-end">
+        <AiDraftButton
+          integrationIds={(selectedIntegration || []).map(
+            (p) => p.integration.id
+          )}
+          onInsert={changeValue(0)}
+        />
+      </div>
       {items.map((g, index) => (
         <div
           key={g.id}

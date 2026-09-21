@@ -202,7 +202,7 @@ export class AdaptService {
   async draftForIntegrations(
     orgId: string,
     instruction: string,
-    integrationIds: string[],
+    integrationIds: string[] = [],
     projectId?: string
   ) {
     if (!this._ollamaService.isConfigured()) {
