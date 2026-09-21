@@ -17,13 +17,23 @@ import { InstagramPreview } from '@gitroom/frontend/components/new-launch/provid
 const postType = [
   {
     value: 'post',
-    label: 'Post / Reel',
+    label: 'Post (imagen o carrusel)',
+  },
+  {
+    value: 'reel',
+    label: 'Reel (un solo vídeo vertical)',
   },
   {
     value: 'story',
     label: 'Story',
   },
 ];
+
+const typeHelp: Record<string, string> = {
+  post: 'Imagen o carrusel de hasta 10. Se queda en tu perfil.',
+  reel: 'Un solo vídeo vertical (9:16). Admite audio y Trial Reel.',
+  story: 'Imagen o vídeo. Desaparece a las 24 horas.',
+};
 
 const graduationStrategies = [
   {
@@ -47,19 +57,31 @@ const InstagramCollaborators: FC<{
   const supportsAudio = integration?.identifier === 'instagram';
   return (
     <>
-      <Select
-        label="Post Type"
-        {...register('post_type', {
-          value: 'post',
-        })}
-      >
-        <option value="">{t('select_post_type', 'Select Post Type...')}</option>
-        {postType.map((item) => (
-          <option key={item.value} value={item.value}>
-            {item.label}
+      <div className="mb-[18px] p-[16px] rounded-[8px] border border-newBorder bg-newSettings">
+        <div className="mb-[10px] text-[15px] font-[600]">
+          {t('instagram_what_to_publish', '1 · ¿Qué vas a publicar?')}
+        </div>
+        <Select
+          label=""
+          {...register('post_type', {
+            value: 'post',
+          })}
+        >
+          <option value="">
+            {t('select_post_type', 'Select Post Type...')}
           </option>
-        ))}
-      </Select>
+          {postType.map((item) => (
+            <option key={item.value} value={item.value}>
+              {item.label}
+            </option>
+          ))}
+        </Select>
+        {!!typeHelp[postCurrentType] && (
+          <div className="mt-[8px] text-[13px] text-textItemBlur">
+            {typeHelp[postCurrentType]}
+          </div>
+        )}
+      </div>
 
       {postCurrentType !== 'story' && (
         <InstagramCollaboratorsTags
@@ -70,7 +92,7 @@ const InstagramCollaborators: FC<{
         />
       )}
 
-      {postCurrentType === 'post' && (
+      {postCurrentType === 'reel' && (
         <div className="mt-[18px]">
           <InstagramAudioSelector
             label={t(
@@ -83,7 +105,7 @@ const InstagramCollaborators: FC<{
         </div>
       )}
 
-      {postCurrentType === 'post' && (
+      {postCurrentType === 'reel' && (
         <div className="mt-[18px] flex flex-col gap-[18px]">
           <Checkbox
             {...register('is_trial_reel', {

@@ -50,6 +50,17 @@ export class InstagramStandaloneProvider
     if (!firstPost?.length) {
       return 'Should have at least one media';
     }
+    if (settings?.post_type === 'reel') {
+      if ((firstPost?.length ?? 0) > 1) {
+        return 'A Reel can only have one video';
+      }
+      const hasVideo = firstPost?.some(
+        (f) => (f?.path?.indexOf?.('mp4') ?? -1) > -1
+      );
+      if (!hasVideo) {
+        return 'A Reel must be a video';
+      }
+    }
     if (this.assetBoolean(settings?.is_trial_reel)) {
       if ((firstPost?.length ?? 0) > 1) {
         return 'Trial Reels can only have one video';
