@@ -10,7 +10,7 @@ export class OllamaService {
   }
 
   private get model() {
-    return process.env.OLLAMA_MODEL || 'qwen2.5:7b-instruct';
+    return process.env.OLLAMA_MODEL || 'glm4:9b';
   }
 
   private async chat(

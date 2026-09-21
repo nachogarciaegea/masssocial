@@ -1,10 +1,11 @@
 'use client';
 
+import clsx from 'clsx';
 import {
   PostComment,
   withProvider,
 } from '@gitroom/frontend/components/new-launch/providers/high.order.provider';
-import { FC } from 'react';
+import { FC, useCallback } from 'react';
 import { Select } from '@gitroom/react/form/select';
 import { Checkbox } from '@gitroom/react/form/checkbox';
 import { useSettings } from '@gitroom/frontend/components/launches/helpers/use.values';
@@ -17,15 +18,63 @@ import { InstagramPreview } from '@gitroom/frontend/components/new-launch/provid
 const postType = [
   {
     value: 'post',
-    label: 'Post (imagen o carrusel)',
+    label: 'Post',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <rect
+          x="3"
+          y="3"
+          width="18"
+          height="18"
+          rx="3"
+          stroke="currentColor"
+          strokeWidth="2"
+        />
+        <circle cx="9" cy="10" r="1.6" fill="currentColor" />
+        <path
+          d="M5 17l4.5-5 3.5 3.5L16 12l3 4"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
   },
   {
     value: 'reel',
-    label: 'Reel (un solo vídeo vertical)',
+    label: 'Reel',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <rect
+          x="4"
+          y="2"
+          width="16"
+          height="20"
+          rx="3"
+          stroke="currentColor"
+          strokeWidth="2"
+        />
+        <path d="M10 9l6 3-6 3V9z" fill="currentColor" />
+      </svg>
+    ),
   },
   {
     value: 'story',
     label: 'Story',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <circle
+          cx="12"
+          cy="12"
+          r="9"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeDasharray="3 3"
+        />
+        <circle cx="12" cy="12" r="4" fill="currentColor" />
+      </svg>
+    ),
   },
 ];
 
@@ -49,35 +98,55 @@ const InstagramCollaborators: FC<{
   values?: any;
 }> = (props) => {
   const t = useT();
-  const { watch, register, formState, control } = useSettings();
+  const { watch, register, setValue, formState, control } = useSettings();
   const { integration } = useIntegration();
   const postCurrentType = watch('post_type');
   const isTrialReel = watch('is_trial_reel');
   // The Audio API is only available with Facebook Login, not Instagram Login
   const supportsAudio = integration?.identifier === 'instagram';
+
+  const selectType = useCallback(
+    (value: string) => () => {
+      setValue('post_type', value, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    },
+    [setValue]
+  );
+
   return (
     <>
       <div className="mb-[18px] p-[16px] rounded-[8px] border border-newBorder bg-newSettings">
         <div className="mb-[10px] text-[15px] font-[600]">
           {t('instagram_what_to_publish', '1 · ¿Qué vas a publicar?')}
         </div>
-        <Select
-          label=""
-          {...register('post_type', {
-            value: 'post',
+        {/* Sigue registrado para el resolver de class-validator; el valor
+            real se cambia con los botones de abajo, no con este campo. */}
+        <input type="hidden" {...register('post_type', { value: 'post' })} />
+        <div className="grid grid-cols-3 gap-[8px]">
+          {postType.map((item) => {
+            const active = postCurrentType === item.value;
+            return (
+              <button
+                key={item.value}
+                type="button"
+                onClick={selectType(item.value)}
+                className={clsx(
+                  'flex flex-col items-center gap-[6px] rounded-[8px] border py-[12px] px-[8px] transition-colors',
+                  active
+                    ? 'bg-btnPrimary border-btnPrimary text-btnText'
+                    : 'bg-newBgColorInner border-newBorder text-textItemBlur hover:text-textItemFocused'
+                )}
+              >
+                {item.icon}
+                <span className="text-[13px] font-[600]">{item.label}</span>
+              </button>
+            );
           })}
-        >
-          <option value="">
-            {t('select_post_type', 'Select Post Type...')}
-          </option>
-          {postType.map((item) => (
-            <option key={item.value} value={item.value}>
-              {item.label}
-            </option>
-          ))}
-        </Select>
+        </div>
         {!!typeHelp[postCurrentType] && (
-          <div className="mt-[8px] text-[13px] text-textItemBlur">
+          <div className="mt-[10px] text-[13px] text-textItemBlur">
             {typeHelp[postCurrentType]}
           </div>
         )}
