@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ProjectProfile } from '@prisma/client';
 import { OpenaiService } from '@gitroom/nestjs-libraries/openai/openai.service';
+import { OllamaService } from '@gitroom/nestjs-libraries/openai/ollama.service';
 import { IntegrationManager } from '@gitroom/nestjs-libraries/integrations/integration.manager';
 import { ProjectProfileService } from '@gitroom/nestjs-libraries/database/prisma/masssocial/project.profile.service';
 import { AdaptDto } from '@gitroom/nestjs-libraries/dtos/masssocial/adapt.dto';
@@ -36,6 +37,7 @@ const ELLIPSIS = '…';
 export class AdaptService {
   constructor(
     private _openaiService: OpenaiService,
+    private _ollamaService: OllamaService,
     private _integrationManager: IntegrationManager,
     private _projectProfileService: ProjectProfileService
   ) {}
@@ -152,29 +154,37 @@ export class AdaptService {
       return this.applyRules(content, target, options);
     }
 
-    if (!process.env.OPENAI_API_KEY) {
+    // Ollama (local, gratis) es la opción preferente; OpenAI solo si no hay
+    // Ollama configurado pero sí una clave de pago puesta.
+    const useOllama = this._ollamaService.isConfigured();
+    if (!useOllama && !process.env.OPENAI_API_KEY) {
       const result = this.applyRules(content, target, options);
       result.notes.unshift(
-        'IA no disponible (falta OPENAI_API_KEY): se han aplicado solo las reglas'
+        'IA no disponible (falta OLLAMA_HOST u OPENAI_API_KEY): se han aplicado solo las reglas'
       );
       return result;
     }
 
     try {
       const plain = this.toParagraphs(content).join('\n\n');
-      const rewritten = await this._openaiService.adaptPostForProvider(plain, {
+      const adaptArgs = {
         identifier: target.identifier,
         maxLength: target.maxLength,
         tone: options.tone,
         language: options.language,
         hashtags: options.hashtags,
-      });
+      };
+      const rewritten = useOllama
+        ? await this._ollamaService.adaptPostForProvider(plain, adaptArgs)
+        : await this._openaiService.adaptPostForProvider(plain, adaptArgs);
       // Las reglas garantizan el límite aunque la IA se pase
       const result = this.applyRules(rewritten, target, {
         ...options,
         hashtags: [],
       });
-      result.notes.unshift('Texto reescrito con IA');
+      result.notes.unshift(
+        useOllama ? 'Texto reescrito con IA local (Ollama)' : 'Texto reescrito con IA'
+      );
       return result;
     } catch (err: any) {
       const result = this.applyRules(content, target, options);
@@ -183,6 +193,74 @@ export class AdaptService {
       );
       return result;
     }
+  }
+
+  // POST /masssocial/ai/draft: redacta un borrador desde una instrucción o
+  // tema, y lo adapta a cada red destino. Solo IA local (Ollama); sin ella,
+  // no hay forma de "redactar desde cero" (adaptar reglas necesita un texto
+  // de partida), así que se informa con claridad en vez de devolver vacío.
+  async draftForIntegrations(
+    orgId: string,
+    instruction: string,
+    integrationIds: string[],
+    projectId?: string
+  ) {
+    if (!this._ollamaService.isConfigured()) {
+      throw new Error(
+        'No hay ninguna IA local configurada (falta OLLAMA_HOST en el servidor)'
+      );
+    }
+
+    const integrations = await this._projectProfileService.getIntegrations(
+      orgId
+    );
+    const byId = new Map(integrations.map((i) => [i.id, i]));
+
+    let profile: ProjectProfile | null = null;
+    if (projectId) {
+      const customer = await this._projectProfileService.getCustomer(
+        orgId,
+        projectId
+      );
+      if (!customer) {
+        throw new NotFoundException('Proyecto no encontrado');
+      }
+      profile = customer.profile;
+    }
+    const options = this.optionsFromProfile(profile, true);
+
+    const draft = await this._ollamaService.draftPost(instruction, {
+      tone: options.tone,
+      language: options.language,
+    });
+
+    const adaptations = await Promise.all(
+      integrationIds.map(async (integrationId) => {
+        const integration = byId.get(integrationId);
+        if (!integration) {
+          throw new NotFoundException(`Canal ${integrationId} no encontrado`);
+        }
+        const maxLength = this.getMaxLength(
+          integration.providerIdentifier,
+          integration.additionalSettings
+        );
+        const result = this.applyRules(
+          draft,
+          { identifier: integration.providerIdentifier, maxLength },
+          options
+        );
+        return {
+          integrationId,
+          identifier: integration.providerIdentifier,
+          content: result.content,
+          maxLength,
+          truncated: result.truncated,
+          notes: result.notes,
+        };
+      })
+    );
+
+    return { draft, adaptations };
   }
 
   getMaxLength(

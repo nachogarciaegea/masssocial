@@ -18,6 +18,7 @@ import { Theme } from 'emoji-picker-react';
 import { BoldText } from '@gitroom/frontend/components/new-launch/bold.text';
 import { UText } from '@gitroom/frontend/components/new-launch/u.text';
 import { SignatureBox } from '@gitroom/frontend/components/signature';
+import { AiDraftButton } from '@gitroom/frontend/components/new-launch/ai.draft';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import {
   SelectedIntegrations,
@@ -414,6 +415,14 @@ export const EditorWrapper: FC<{
           </div>
           <div className="absolute w-full h-full left-0 top-0 bg-newBackdrop opacity-60 z-[100] rounded-[12px]" />
         </>
+      )}
+      {!!selectedIntegration?.length && (
+        <div className="flex justify-end">
+          <AiDraftButton
+            integrationIds={selectedIntegration.map((p) => p.integration.id)}
+            onInsert={changeValue(0)}
+          />
+        </div>
       )}
       {items.map((g, index) => (
         <div

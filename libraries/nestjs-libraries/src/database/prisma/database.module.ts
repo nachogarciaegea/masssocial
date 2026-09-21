@@ -22,6 +22,7 @@ import { PaymentProviderManager } from '@gitroom/nestjs-libraries/services/payme
 import { RevenueCatProvider } from '@gitroom/nestjs-libraries/services/payment/providers/revenuecat.provider';
 import { ExtractContentService } from '@gitroom/nestjs-libraries/openai/extract.content.service';
 import { OpenaiService } from '@gitroom/nestjs-libraries/openai/openai.service';
+import { OllamaService } from '@gitroom/nestjs-libraries/openai/ollama.service';
 import { AgenciesService } from '@gitroom/nestjs-libraries/database/prisma/agencies/agencies.service';
 import { AgenciesRepository } from '@gitroom/nestjs-libraries/database/prisma/agencies/agencies.repository';
 import { TrackService } from '@gitroom/nestjs-libraries/track/track.service';
@@ -94,6 +95,7 @@ import { EvergreenService } from '@gitroom/nestjs-libraries/database/prisma/mass
     RefreshIntegrationService,
     ExtractContentService,
     OpenaiService,
+    OllamaService,
     FalService,
     EmailService,
     TrackService,
