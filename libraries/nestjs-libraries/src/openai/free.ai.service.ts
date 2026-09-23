@@ -137,7 +137,6 @@ export class FreeAiService {
       `You write social media post drafts from the user's instruction or topic.`,
       `Reply with the post text only: no preamble, no explanation, no quotes around it.`,
       `Plain text only: paragraphs separated by a blank line, no markdown, no HTML, no hashtags unless asked.`,
-      `Never state facts about the author (talks, awards, employers, clients, figures, events) that are not given in the instruction or the examples.`,
       options.maxLength
         ? `Keep it under ${options.maxLength} characters.`
         : '',
@@ -147,12 +146,20 @@ export class FreeAiService {
       options.examples
         ? `Real posts by the author that worked well. Copy their voice, hook style and structure, not their content:\n${options.examples}`
         : '',
+      // Al final a propósito: los modelos respetan más lo último del prompt
+      `STRICT RULES (most important):
+- Never invent facts. No numbers, percentages, salaries or statistics that are not in the instruction or the current draft.
+- Never invent first-person events or quantities about the author's work: any sentence where the author says something happened to them (me presentaron, entrevisté, estuve en, he visto, rechacé, contraté, en una auditoría, reviso cientos de CV, cada semana...) must be a placeholder unless the instruction or the current draft gives it.
+- Also never invent talks, awards, employers, clients or events.
+- Placeholders go in square brackets for the author to fill, e.g. [DATO: sueldo medio de un junior] or [TU EXPERIENCIA: un candidato con muchos títulos que falló en lo práctico]. The hook can be a placeholder too.
+- Opinions and advice in first person are fine (creo, prefiero, lo que yo miraría).
+- The examples show structure and voice only. Never copy their labels literally; write a natural sentence instead.`,
     ]
       .filter((f) => !!f)
       .join('\n\n');
 
     const prompt = options.currentText
-      ? `Current draft:\n${options.currentText}\n\nRewrite the draft following this instruction: ${instruction}`
+      ? `Current draft:\n${options.currentText}\n\nRewrite the draft following this instruction: ${instruction}\nKeep any [placeholder] from the draft unless the instruction fills it.`
       : instruction;
 
     return this.chat(system, prompt);
