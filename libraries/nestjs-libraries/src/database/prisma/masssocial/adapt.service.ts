@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ProjectProfile } from '@prisma/client';
 import { OpenaiService } from '@gitroom/nestjs-libraries/openai/openai.service';
-import { OllamaService } from '@gitroom/nestjs-libraries/openai/ollama.service';
+import { FreeAiService } from '@gitroom/nestjs-libraries/openai/free.ai.service';
 import { IntegrationManager } from '@gitroom/nestjs-libraries/integrations/integration.manager';
 import { ProjectProfileService } from '@gitroom/nestjs-libraries/database/prisma/masssocial/project.profile.service';
 import { AdaptDto } from '@gitroom/nestjs-libraries/dtos/masssocial/adapt.dto';
@@ -37,7 +37,7 @@ const ELLIPSIS = '…';
 export class AdaptService {
   constructor(
     private _openaiService: OpenaiService,
-    private _ollamaService: OllamaService,
+    private _freeAiService: FreeAiService,
     private _integrationManager: IntegrationManager,
     private _projectProfileService: ProjectProfileService
   ) {}
@@ -154,13 +154,13 @@ export class AdaptService {
       return this.applyRules(content, target, options);
     }
 
-    // Ollama (local, gratis) es la opción preferente; OpenAI solo si no hay
-    // Ollama configurado pero sí una clave de pago puesta.
-    const useOllama = this._ollamaService.isConfigured();
-    if (!useOllama && !process.env.OPENAI_API_KEY) {
+    // La IA gratuita es la opción preferente; OpenAI solo si no hay ninguna
+    // gratuita configurada pero sí una clave de pago puesta.
+    const useFree = this._freeAiService.isConfigured();
+    if (!useFree && !process.env.OPENAI_API_KEY) {
       const result = this.applyRules(content, target, options);
       result.notes.unshift(
-        'IA no disponible (falta OLLAMA_HOST u OPENAI_API_KEY): se han aplicado solo las reglas'
+        'IA no disponible (falta AI_BASE_URL, OLLAMA_HOST u OPENAI_API_KEY): se han aplicado solo las reglas'
       );
       return result;
     }
@@ -174,8 +174,8 @@ export class AdaptService {
         language: options.language,
         hashtags: options.hashtags,
       };
-      const rewritten = useOllama
-        ? await this._ollamaService.adaptPostForProvider(plain, adaptArgs)
+      const rewritten = useFree
+        ? await this._freeAiService.adaptPostForProvider(plain, adaptArgs)
         : await this._openaiService.adaptPostForProvider(plain, adaptArgs);
       // Las reglas garantizan el límite aunque la IA se pase
       const result = this.applyRules(rewritten, target, {
@@ -183,7 +183,7 @@ export class AdaptService {
         hashtags: [],
       });
       result.notes.unshift(
-        useOllama ? 'Texto reescrito con IA local (Ollama)' : 'Texto reescrito con IA'
+        useFree ? 'Texto reescrito con IA gratuita' : 'Texto reescrito con IA'
       );
       return result;
     } catch (err: any) {
@@ -196,18 +196,19 @@ export class AdaptService {
   }
 
   // POST /masssocial/ai/draft: redacta un borrador desde una instrucción o
-  // tema, y lo adapta a cada red destino. Solo IA local (Ollama); sin ella,
-  // no hay forma de "redactar desde cero" (adaptar reglas necesita un texto
-  // de partida), así que se informa con claridad en vez de devolver vacío.
+  // tema, y lo adapta a cada red destino. Solo IA gratuita; sin ella, no hay
+  // forma de "redactar desde cero" (adaptar reglas necesita un texto de
+  // partida), así que se informa con claridad en vez de devolver vacío.
   async draftForIntegrations(
     orgId: string,
     instruction: string,
     integrationIds: string[] = [],
-    projectId?: string
+    projectId?: string,
+    currentText?: string
   ) {
-    if (!this._ollamaService.isConfigured()) {
+    if (!this._freeAiService.isConfigured()) {
       throw new Error(
-        'No hay ninguna IA local configurada (falta OLLAMA_HOST en el servidor)'
+        'No hay ninguna IA gratuita configurada (falta AI_BASE_URL u OLLAMA_HOST en el servidor)'
       );
     }
 
@@ -216,22 +217,32 @@ export class AdaptService {
     );
     const byId = new Map(integrations.map((i) => [i.id, i]));
 
+    // Sin proyecto explícito, se usa el del primer canal elegido que tenga uno
+    const customerId =
+      projectId ||
+      integrationIds
+        .map((id) => byId.get(id)?.customerId)
+        .find((id) => !!id);
+
     let profile: ProjectProfile | null = null;
-    if (projectId) {
+    if (customerId) {
       const customer = await this._projectProfileService.getCustomer(
         orgId,
-        projectId
+        customerId
       );
-      if (!customer) {
+      if (!customer && projectId) {
         throw new NotFoundException('Proyecto no encontrado');
       }
-      profile = customer.profile;
+      profile = customer?.profile?.deletedAt ? null : customer?.profile || null;
     }
     const options = this.optionsFromProfile(profile, true);
 
-    const draft = await this._ollamaService.draftPost(instruction, {
+    const draft = await this._freeAiService.draftPost(instruction, {
       tone: options.tone,
       language: options.language,
+      notes: profile?.notes || undefined,
+      examples: profile?.examples || undefined,
+      currentText,
     });
 
     const adaptations = await Promise.all(

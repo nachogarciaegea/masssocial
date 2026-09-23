@@ -331,6 +331,7 @@ model ProjectProfile {
   defaultTimes   String?
   color          String?
   notes          String?
+  examples       String?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   deletedAt      DateTime?

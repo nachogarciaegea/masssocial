@@ -18,7 +18,7 @@ import { Theme } from 'emoji-picker-react';
 import { BoldText } from '@gitroom/frontend/components/new-launch/bold.text';
 import { UText } from '@gitroom/frontend/components/new-launch/u.text';
 import { SignatureBox } from '@gitroom/frontend/components/signature';
-import { AiDraftButton } from '@gitroom/frontend/components/new-launch/ai.draft';
+import { AiPromptBar } from '@gitroom/frontend/components/new-launch/ai.draft';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import {
   SelectedIntegrations,
@@ -174,6 +174,7 @@ export const EditorWrapper: FC<{
 
   const existingData = useExistingData();
   const [loaded, setLoaded] = useState(true);
+  const [aiPrevious, setAiPrevious] = useState<string | null>(null);
 
   useEffect(() => {
     if (loaded && loadedState) {
@@ -416,14 +417,25 @@ export const EditorWrapper: FC<{
           <div className="absolute w-full h-full left-0 top-0 bg-newBackdrop opacity-60 z-[100] rounded-[12px]" />
         </>
       )}
-      <div className="flex justify-end">
-        <AiDraftButton
+      {canEdit && !isCreateSet && (
+        <AiPromptBar
           integrationIds={(selectedIntegration || []).map(
             (p) => p.integration.id
           )}
-          onInsert={changeValue(0)}
+          currentValue={items[0]?.content || ''}
+          canUndo={aiPrevious !== null}
+          onInsert={(html) => {
+            setAiPrevious(items[0]?.content || '');
+            changeValue(0)(html);
+            setLoaded(false);
+          }}
+          onUndo={() => {
+            changeValue(0)(aiPrevious || '');
+            setAiPrevious(null);
+            setLoaded(false);
+          }}
         />
-      </div>
+      )}
       {items.map((g, index) => (
         <div
           key={g.id}

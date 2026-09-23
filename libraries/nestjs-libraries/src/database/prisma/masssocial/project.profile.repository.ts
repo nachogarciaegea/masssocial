@@ -101,6 +101,7 @@ export class ProjectProfileRepository {
       defaultTimes: body.defaultTimes ? JSON.stringify(body.defaultTimes) : null,
       color: body.color ?? null,
       notes: body.notes ?? null,
+      examples: body.examples ?? null,
     };
 
     return this._profiles.model.projectProfile.upsert({

@@ -15,4 +15,9 @@ export class AiDraftDto {
   @IsOptional()
   @IsString()
   projectId?: string;
+
+  // Texto que ya hay en el editor, para pedir cambios sobre él
+  @IsOptional()
+  @IsString()
+  currentText?: string;
 }

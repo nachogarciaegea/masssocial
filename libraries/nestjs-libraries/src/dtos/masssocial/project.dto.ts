@@ -42,6 +42,10 @@ export class ProjectProfileDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @IsOptional()
+  @IsString()
+  examples?: string;
 }
 
 export class ProjectChannelsDto {
