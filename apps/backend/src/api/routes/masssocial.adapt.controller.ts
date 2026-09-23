@@ -3,7 +3,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { Organization } from '@prisma/client';
 import { GetOrgFromRequest } from '@gitroom/nestjs-libraries/user/org.from.request';
 import { AdaptService } from '@gitroom/nestjs-libraries/database/prisma/masssocial/adapt.service';
-import { OllamaService } from '@gitroom/nestjs-libraries/openai/ollama.service';
+import { FreeAiService } from '@gitroom/nestjs-libraries/openai/free.ai.service';
 import { AdaptDto } from '@gitroom/nestjs-libraries/dtos/masssocial/adapt.dto';
 import { AiDraftDto } from '@gitroom/nestjs-libraries/dtos/masssocial/ai.draft.dto';
 
@@ -12,16 +12,16 @@ import { AiDraftDto } from '@gitroom/nestjs-libraries/dtos/masssocial/ai.draft.d
 export class MasssocialAdaptController {
   constructor(
     private _adaptService: AdaptService,
-    private _ollamaService: OllamaService
+    private _freeAiService: FreeAiService
   ) {}
 
   // El creador de post consulta esto para mostrar u ocultar el botón de IA
-  // (sin clave de pago: solo aparece si hay una IA local configurada).
+  // (sin clave de pago: solo aparece si hay una IA gratuita configurada).
   @Get('/ai-status')
   aiStatus() {
     return {
-      available: this._ollamaService.isConfigured(),
-      provider: this._ollamaService.isConfigured() ? 'ollama' : null,
+      available: this._freeAiService.isConfigured(),
+      provider: this._freeAiService.providerName(),
     };
   }
 
@@ -36,7 +36,8 @@ export class MasssocialAdaptController {
       org.id,
       body.instruction,
       body.integrationIds,
-      body.projectId
+      body.projectId,
+      body.currentText
     );
   }
 }

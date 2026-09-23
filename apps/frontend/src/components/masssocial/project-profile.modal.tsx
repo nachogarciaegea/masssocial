@@ -55,6 +55,7 @@ export const ProjectProfileModal: FC<{
       hashtags: profile?.hashtags || '',
       color: profile?.color || '#6c5ce7',
       notes: profile?.notes || '',
+      examples: profile?.examples || '',
     },
   });
 
@@ -91,6 +92,7 @@ export const ProjectProfileModal: FC<{
               hashtags: values.hashtags || undefined,
               color: values.color || undefined,
               notes: values.notes || undefined,
+              examples: values.examples || undefined,
               defaultTimes: times,
             }),
           }
@@ -195,6 +197,14 @@ export const ProjectProfileModal: FC<{
           className="!min-h-[80px]"
           label={t('masssocial_notes', 'Notas')}
           name="notes"
+        />
+        <Textarea
+          className="!min-h-[160px]"
+          label={t(
+            'masssocial_examples',
+            'Ejemplos de estilo (posts tuyos que funcionaron, la IA imita su voz)'
+          )}
+          name="examples"
         />
         <div className="flex justify-end gap-[8px]">
           <Button secondary={true} onClick={close}>

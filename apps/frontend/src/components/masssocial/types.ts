@@ -68,6 +68,7 @@ export interface ProjectProfile {
   defaultTimes?: string | null;
   color?: string | null;
   notes?: string | null;
+  examples?: string | null;
 }
 
 export interface ProjectView {
